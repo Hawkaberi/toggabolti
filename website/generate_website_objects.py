@@ -1,0 +1,1 @@
+# TODO: Búa til script sem býr til graf og gögn og útbýr skjölin sem vefsíðan vill nota.
