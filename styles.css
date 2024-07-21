@@ -1,0 +1,183 @@
+:root {
+    --primary-color: #003366; /* Darkish Blue */
+    --secondary-color: #FFD700; /* Gold */
+    --background-color: #f5f5f5;
+    --text-color: #333;
+    --container-width: 90%;
+    --container-max-width: 1500px; /* Adjusted max width */
+    --plot-height: 600px; /* Adjusted plot height */
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    padding: 20px 0;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-weight: bold;
+}
+
+nav {
+    margin-top: 10px;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+
+nav ul li {
+    margin: 0 10px;
+}
+
+nav ul li a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav ul li a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    flex: 1;
+    width: var(--container-width);
+    max-width: var(--container-max-width);
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+#plot {
+    width: 100%;
+    height: var(--plot-height); /* Adjust height as needed */
+}
+
+.player-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#stats-display {
+    display: flex;
+    justify-content: space-around;
+    align-items: center; /* Vertically center the player name */
+    width: 100%;
+    margin-top: 10px;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat h3 {
+    margin: 5px 0;
+    font-size: 1.1em;
+}
+
+.label-bold {
+    font-weight: bold;
+}
+
+.custom-select {
+    width: 200px;
+    padding: 10px;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    background-color: white;
+    color: var(--primary-color);
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    appearance: none; /* Remove default dropdown arrow */
+    -webkit-appearance: none; /* Remove default dropdown arrow for Safari */
+    -moz-appearance: none; /* Remove default dropdown arrow for Firefox */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20292.36%20292.36%22%3E%3Cpath%20fill%3D%22%23003366%22%20d%3D%22M287%2069.44l-14.14-14.14c-5.86-5.86-15.36-5.86-21.21%200L146.18%20160.77%2040.71%2055.3c-5.86-5.86-15.36-5.86-21.21%200L5.36%2069.44c-5.86%205.86-5.86%2015.36%200%2021.21l130.82%20130.82c5.86%205.86%2015.36%205.86%2021.21%200L287%2090.65c5.86-5.85%205.86-15.35%200-21.21z%22/%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px;
+}
+
+.custom-select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.custom-select option {
+    background-color: white;
+    color: var(--primary-color);
+}
+
+footer {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    padding: 10px 0;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    width: var(--container-width);
+}
+
+footer p {
+    margin: 5px 0;
+}
+
+footer .social-media a {
+    color: var(--secondary-color);
+    margin: 0 10px;
+    text-decoration: none;
+}
+
+footer .social-media a:hover {
+    text-decoration: underline;
+}
+
+/* Adding some styling for buttons and other interactive elements */
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+button:hover {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+}
+
+/* Center table numbers */
+table.dataTable td.dt-center, table.dataTable th.dt-center {
+    text-align: center;
+}
