@@ -461,9 +461,6 @@ fig.update_layout(
     margin=dict(l=10, r=10, t=40, b=20)
 )
 
-# Save the figure as an HTML file
-#pio.write_html(fig, file='plot.html', auto_open=True)
-
 # Convert Plotly graph to JSON
 graph_json = fig.to_json()
 
