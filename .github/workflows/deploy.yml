@@ -1,0 +1,84 @@
+name: Run and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *" # Runs at midnight UTC every night
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.9
+          activate-environment: toggaenv
+          environment-file: toggaenv.yml
+
+      - name: Verify conda environment
+        run: |
+          conda env list
+          conda info
+
+      - name: Run generate_website_objects.py
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+          GITHUB_ACTIONS: true
+        run: |
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/google-credentials.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/google-credentials.json
+          python generate_website_objects.py
+
+  deploy-website:
+    runs-on: ubuntu-latest
+    needs: run-script
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.9
+          activate-environment: toggaenv
+          environment-file: toggaenv.yml
+
+      - name: Verify conda environment
+        run: |
+          conda env list
+          conda info
+
+      - name: Build and Deploy
+        run: |
+          # Example for a static HTML/CSS/JS site
+          mkdir -p public
+          cp -r * public/
+
+          # Uncomment and adjust the following lines for other types of projects
+
+          # Example for Jekyll
+          # bundle install
+          # bundle exec jekyll build -d public
+
+          # Example for Hugo
+          # hugo -d public
+
+          # Example for React/Vue.js
+          # npm install
+          # npm run build
+          # cp -r build/* public/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public # Adjust to your build output directory
