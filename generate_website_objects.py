@@ -40,6 +40,10 @@ def E_glicko(r, ri, rdi):
 def E_elo(r, ri):
     return 1 / (1 + 10 ** ((ri - r) / 400))
 
+def f(x, delta, vol, v, a):
+    exp_x = math.exp(x)
+    return exp_x * (delta ** 2 - vol ** 2 - v - exp_x) / (2 * (vol ** 2 + v + exp_x) ** 2) - (x - a) / (tau ** 2)
+
 # Function to calculate the updated volatility
 def updated_volatility(vol, delta, v, tau):
     a = math.log(vol ** 2)
@@ -67,10 +71,6 @@ def updated_volatility(vol, delta, v, tau):
         fB = fC
 
     return math.exp(A / 2)
-
-def f(x, delta, vol, v, a):
-    exp_x = math.exp(x)
-    return exp_x * (delta ** 2 - vol ** 2 - v - exp_x) / (2 * (vol ** 2 + v + exp_x) ** 2) - (x - a) / (tau ** 2)
 
 # Function to update Glicko-2 ratings and deviations
 def update_glicko_rating(player, results):
