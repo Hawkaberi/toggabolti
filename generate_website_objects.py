@@ -40,7 +40,7 @@ def E_glicko(r, ri, rdi):
 def E_elo(r, ri):
     return 1 / (1 + 10 ** ((ri - r) / 400))
 
-def f(x, delta, vol, v, a):
+def vol_func(x, delta, vol, v, a):
     exp_x = math.exp(x)
     return exp_x * (delta ** 2 - vol ** 2 - v - exp_x) / (2 * (vol ** 2 + v + exp_x) ** 2) - (x - a) / (tau ** 2)
 
@@ -53,15 +53,15 @@ def updated_volatility(vol, delta, v, tau):
         B = math.log(delta ** 2 - v - vol ** 2)
     else:
         k = 1
-        while f(a - k * tau, delta, vol, v, a) < 0:
+        while vol_func(a - k * tau, delta, vol, v, a) < 0:
             k += 1
         B = a - k * tau
-    fA = f(A, delta, vol, v, a)
-    fB = f(B, delta, vol, v, a)
+    fA = vol_func(A, delta, vol, v, a)
+    fB = vol_func(B, delta, vol, v, a)
     
     while abs(B - A) > 1e-6:
         C = A + (A - B) * fA / (fB - fA)
-        fC = f(C, delta, vol, v, a)
+        fC = vol_func(C, delta, vol, v, a)
         if fC * fB < 0:
             A = B
             fA = fB
