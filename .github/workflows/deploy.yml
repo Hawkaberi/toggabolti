@@ -88,11 +88,14 @@ jobs:
 
       - name: Build and Deploy
         shell: bash
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+          GITHUB_ACTIONS: true
         run: |
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate toggaenv
           mkdir -p public
-          cp -r * public/
+          rsync -av --progress --exclude public * public/
 
           # Uncomment and adjust the following lines for other types of projects
 
@@ -107,9 +110,6 @@ jobs:
           # npm install
           # npm run build
           # cp -r build/* public/
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
-          GITHUB_ACTIONS: true
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
