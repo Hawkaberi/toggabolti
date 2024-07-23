@@ -1,4 +1,4 @@
-name: Run and Deploy
+name: Build and Deploy to GitHub Pages
 
 on:
   push:
@@ -11,13 +11,12 @@ on:
     - cron: "0 0 * * *" # Runs at midnight UTC every night
 
 jobs:
-  run-script:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        with:
-          persist-credentials: false # To use the GITHUB_TOKEN for pushing changes
 
       - name: Install Miniconda
         shell: bash
@@ -56,58 +55,7 @@ jobs:
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/google-credentials.json
           python generate_website_objects.py
 
-      - name: Commit and push changes
-        if: success() # Only run this step if previous steps were successful
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-          git add -u  # Only add updated files, not new files like miniconda.sh
-          git add -f *.json  # Add JSON files explicitly
-          if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Update JSON files"
-            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-            git push origin main
-          else
-            echo "No changes to commit"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  deploy-website:
-    runs-on: ubuntu-latest
-    needs: run-script
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Install Miniconda
-        shell: bash
-        run: |
-          wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-          bash miniconda.sh -b -p $HOME/miniconda
-          source "$HOME/miniconda/etc/profile.d/conda.sh"
-          conda config --set always_yes yes --set changeps1 no
-          conda update -q conda
-          conda info -a
-
-      - name: Create conda environment
-        shell: bash
-        run: |
-          source "$HOME/miniconda/etc/profile.d/conda.sh"
-          conda env create -f toggaenv.yml
-          conda activate toggaenv
-
-      - name: Verify conda environment
-        shell: bash
-        run: |
-          source "$HOME/miniconda/etc/profile.d/conda.sh"
-          conda activate toggaenv
-          conda env list
-          conda info
-
-      - name: Copy JSON files to public directory
+      - name: Prepare public directory
         shell: bash
         run: |
           mkdir -p public
@@ -121,4 +69,21 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
           publish_dir: ./public
+
+      - name: Commit and push changes to main
+        if: success()
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add -u
+          git add -f *.json
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Update JSON files"
+            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+            git push origin main
+          else
+            echo "No changes to commit"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
