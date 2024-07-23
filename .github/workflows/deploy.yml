@@ -17,25 +17,42 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Miniconda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: 3.9
-          environment-file: toggaenv.yml
+      - name: Install Miniconda
+        shell: bash
+        run: |
+          wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+          bash miniconda.sh -b -p $HOME/miniconda
+          source "$HOME/miniconda/etc/profile.d/conda.sh"
+          conda config --set always_yes yes --set changeps1 no
+          conda update -q conda
+          conda info -a
+
+      - name: Create conda environment
+        shell: bash
+        run: |
+          source "$HOME/miniconda/etc/profile.d/conda.sh"
+          conda env create -f toggaenv.yml
+          conda activate toggaenv
 
       - name: Verify conda environment
+        shell: bash
         run: |
+          source "$HOME/miniconda/etc/profile.d/conda.sh"
+          conda activate toggaenv
           conda env list
           conda info
 
       - name: Run generate_website_objects.py
+        shell: bash
         env:
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
           GITHUB_ACTIONS: true
         run: |
+          source "$HOME/miniconda/etc/profile.d/conda.sh"
+          conda activate toggaenv
           echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/google-credentials.json
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/google-credentials.json
-          conda run -n toggaenv python generate_website_objects.py
+          python generate_website_objects.py
 
   deploy-website:
     runs-on: ubuntu-latest
@@ -44,33 +61,52 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Miniconda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          python-version: 3.9
-          environment-file: toggaenv.yml
+      - name: Install Miniconda
+        shell: bash
+        run: |
+          wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+          bash miniconda.sh -b -p $HOME/miniconda
+          source "$HOME/miniconda/etc/profile.d/conda.sh"
+          conda config --set always_yes yes --set changeps1 no
+          conda update -q conda
+          conda info -a
+
+      - name: Create conda environment
+        shell: bash
+        run: |
+          source "$HOME/miniconda/etc/profile.d/conda.sh"
+          conda env create -f toggaenv.yml
+          conda activate toggaenv
 
       - name: Verify conda environment
+        shell: bash
         run: |
+          source "$HOME/miniconda/etc/profile.d/conda.sh"
+          conda activate toggaenv
           conda env list
           conda info
 
       - name: Build and Deploy
+        shell: bash
         run: |
-          conda run -n toggaenv --no-capture-output bash -c "
+          source "$HOME/miniconda/etc/profile.d/conda.sh"
+          conda activate toggaenv
           mkdir -p public
           cp -r * public/
+
           # Uncomment and adjust the following lines for other types of projects
+
           # Example for Jekyll
           # bundle install
           # bundle exec jekyll build -d public
+
           # Example for Hugo
           # hugo -d public
+
           # Example for React/Vue.js
           # npm install
           # npm run build
           # cp -r build/* public/
-          "
         env:
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
           GITHUB_ACTIONS: true
