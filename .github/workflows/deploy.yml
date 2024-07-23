@@ -123,6 +123,8 @@ jobs:
         run: |
           git fetch origin gh-pages
           git checkout gh-pages
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
           git ls-files | xargs git rm
           git commit -m "Clean old files"
           git push origin gh-pages
