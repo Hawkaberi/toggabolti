@@ -123,7 +123,7 @@ jobs:
         run: |
           git fetch origin gh-pages
           git checkout gh-pages
-          git rm -r *
+          git ls-files | xargs git rm
           git commit -m "Clean old files"
           git push origin gh-pages
 
