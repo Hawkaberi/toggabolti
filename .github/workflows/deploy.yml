@@ -107,11 +107,13 @@ jobs:
           conda env list
           conda info
 
-      - name: Copy JSON files to public directory
+      - name: Prepare public directory
         shell: bash
         run: |
           mkdir -p public
           cp *.json public/
+          cp index.html public/
+          cp styles.css public/
 
       - name: List public directory contents
         shell: bash
