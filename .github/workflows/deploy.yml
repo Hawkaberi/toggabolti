@@ -57,6 +57,8 @@ jobs:
   deploy-website:
     runs-on: ubuntu-latest
     needs: run-script
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -95,21 +97,7 @@ jobs:
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate toggaenv
           mkdir -p public
-          rsync -av --progress --exclude public * public/
-
-          # Uncomment and adjust the following lines for other types of projects
-
-          # Example for Jekyll
-          # bundle install
-          # bundle exec jekyll build -d public
-
-          # Example for Hugo
-          # hugo -d public
-
-          # Example for React/Vue.js
-          # npm install
-          # npm run build
-          # cp -r build/* public/
+          rsync -av --progress --exclude public --exclude miniconda.sh * public/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
