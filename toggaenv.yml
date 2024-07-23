@@ -1,0 +1,19 @@
+name: toggaenv
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pandas
+  - gspread
+  - oauth2client
+  - matplotlib
+  - plotly
+  - requests
+  - google-auth
+  - google-auth-oauthlib
+  - google-auth-httplib2
+  - google-api-python-client
+  - pip
+  - pip:
+    - python-dotenv
