@@ -61,7 +61,8 @@ jobs:
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git add .
+          git add -u  # Only add updated files, not new files like miniconda.sh
+          git add -f *.json  # Add JSON files explicitly
           git commit -m "Update JSON files"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git push origin main
