@@ -119,6 +119,14 @@ jobs:
         shell: bash
         run: ls -la public
 
+      - name: Clean gh-pages branch
+        run: |
+          git fetch origin gh-pages
+          git checkout gh-pages
+          git rm -r *
+          git commit -m "Clean old files"
+          git push origin gh-pages
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
