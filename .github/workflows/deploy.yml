@@ -17,9 +17,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          persist-credentials: false # To use the GITHUB_TOKEN for pushing changes
 
       - name: Install Miniconda
-        shell: bash
         run: |
           wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
           bash miniconda.sh -b -p $HOME/miniconda
@@ -29,14 +30,12 @@ jobs:
           conda info -a
 
       - name: Create conda environment
-        shell: bash
         run: |
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda env create -f toggaenv.yml
           conda activate toggaenv
 
       - name: Verify conda environment
-        shell: bash
         run: |
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate toggaenv
@@ -44,7 +43,6 @@ jobs:
           conda info
 
       - name: Run generate_website_objects.py
-        shell: bash
         env:
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
           GITHUB_ACTIONS: true
@@ -56,31 +54,32 @@ jobs:
           python generate_website_objects.py
 
       - name: Prepare public directory
-        shell: bash
         run: |
           mkdir -p public
           cp *.json public/
 
       - name: List public directory contents
-        shell: bash
         run: ls -la public
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
           publish_dir: ./public
+
+      - name: Pull latest changes from main
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git pull origin main --rebase
 
       - name: Commit and push changes to main
         if: success()
         run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
           git add -A  # Add all changes, including untracked files
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "Update JSON files"
-            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
             git push origin main
           else
             echo "No changes to commit"
