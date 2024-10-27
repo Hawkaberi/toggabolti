@@ -111,7 +111,9 @@ jobs:
         run: |
           git fetch origin gh-pages
           git checkout gh-pages
-          git rm -rf . # Remove old files
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git rm -rf . # Remove all files in the gh-pages branch
           git commit -m "Clean old files"
           git push origin gh-pages
 
