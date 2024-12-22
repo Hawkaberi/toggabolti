@@ -262,6 +262,9 @@ dagadict[dt(2024,8,22)]['lid2'] = ['Sigurgeir', 'Þórður', 'Daníel Snorri', '
 dagadict[dt(2024,9,12)]['lid1'] = ['Anton', 'Símon', 'Sigurgeir', 'Eggert Georg', 'Jakob Jóhann', 'Þórarinn', 'Egill (Atli)?']
 dagadict[dt(2024,9,12)]['lid2'] = ['Þórður', 'Daníel Snorri', 'Þórhallur', 'Jón', 'Alexander', 'Grímur', 'Victor']
 
+dagadict[dt(2024,11,7)]['lid1'] = ['Alexander', 'Birgir Magnús', 'Sigurgeir', 'Þórður', 'Davíð', 'Jóhann']
+dagadict[dt(2024,11,7)]['lid2'] = ['Haukur', 'Eggert Georg', 'Símon', 'Sindri', 'Máni Þór', 'Daníel Snorri']
+
 print("Calculating ratings...")
 leikmannalist = []
 for leikmadur in df.columns[1:]:
