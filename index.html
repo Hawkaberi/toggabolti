@@ -174,7 +174,7 @@
             row.insertCell(4).textContent = player.top;
             row.insertCell(5).textContent =
               player.win_percentage.toFixed(1) + "%";
-            row.insertCell(6).textContent = Math.round(player.togga_rating);
+            row.insertCell(6).textContent = Math.round(player.elo_rating);
           });
           if (playerData.length > 0) {
             playerSelect.value = playerData[0].leikmadur;
