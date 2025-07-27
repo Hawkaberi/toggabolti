@@ -450,6 +450,10 @@ fig.update_layout(
 # Convert Plotly graph to JSON
 graph_json = fig.to_json()
 
+import os
+if os.path.exists("plotly_graph.json"):
+    os.remove("plotly_graph.json")
+
 # Save the JSON to a file
 with open('./plotly_graph.json', 'w') as f:
     f.write(graph_json)
