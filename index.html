@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Togga Ratings Over Time</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Toggabolti</h1>
+      <nav>
+        <ul>
+          <li>
+            <a href="#" onclick="showSection('graph-section')">Leikmenn</a>
+          </li>
+          <li>
+            <a href="#" onclick="showSection('table-section')">Topplistinn</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <div class="container" id="graph-section">
+      <div class="player-stats">
+        <label for="player-select">Select Player:</label>
+        <select
+          id="player-select"
+          class="custom-select"
+          onchange="updatePlayerStats(); updatePlot()"
+        >
+          <!-- Player options will be added here dynamically -->
+        </select>
+        <div id="stats-display">
+          <div class="stat">
+            <h3 id="player-name"></h3>
+          </div>
+          <div class="stat">
+            <p>
+              <span class="label-bold">Wins:</span>
+              <span id="player-wins"></span>
+            </p>
+            <p>Win %: <span id="player-win-percentage"></span></p>
+          </div>
+          <div class="stat">
+            <p>
+              <span class="label-bold">Ties:</span>
+              <span id="player-ties"></span>
+            </p>
+            <p>Tie %: <span id="player-tie-percentage"></span></p>
+          </div>
+          <div class="stat">
+            <p>
+              <span class="label-bold">Losses:</span>
+              <span id="player-losses"></span>
+            </p>
+            <p>Loss %: <span id="player-loss-percentage"></span></p>
+          </div>
+        </div>
+      </div>
+      <div id="plot"></div>
+    </div>
+    <div class="container" id="table-section" style="display: none">
+      <table id="player-table" class="display">
+        <thead>
+          <tr>
+            <th>Nafn</th>
+            <th>Leikir</th>
+            <th>Sigrar</th>
+            <th>Jafntefli</th>
+            <th>Töp</th>
+            <th>Sigurhlutfall</th>
+            <th>Togga Stig</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Table data will be added here dynamically -->
+        </tbody>
+      </table>
+    </div>
+    <footer>
+      <div class="footer-content">
+        <!-- <p>Contact us: contact@example.com</p> -->
+        <div class="social-media">
+          <a
+            href="https://www.facebook.com/groups/1322631215178262"
+            target="_blank"
+            >Facebook Group</a
+          >
+        </div>
+      </div>
+    </footer>
+    <script>
+      let playerData = [];
+      let plotData = [];
+      let layout = {};
+
+      // Function to update player stats display
+      function updatePlayerStats() {
+        const playerSelect = document.getElementById("player-select");
+        const selectedPlayerName = playerSelect.value;
+        const player = playerData.find(
+          (p) => p.leikmadur === selectedPlayerName
+        );
+        if (player) {
+          document.getElementById("player-name").textContent = player.leikmadur;
+          document.getElementById("player-wins").textContent = player.sigrar;
+          document.getElementById("player-ties").textContent = player.jafntefli;
+          document.getElementById("player-losses").textContent = player.top;
+          document.getElementById("player-win-percentage").textContent =
+            player.win_percentage.toFixed(1);
+          document.getElementById("player-tie-percentage").textContent =
+            player.tie_percentage.toFixed(1);
+          document.getElementById("player-loss-percentage").textContent =
+            player.lose_percentage.toFixed(1);
+        }
+      }
+
+      // Function to update plot based on selected player
+      function updatePlot() {
+        const playerSelect = document.getElementById("player-select");
+        const selectedPlayerName = playerSelect.value;
+
+        // Set visibility for all traces to false except the selected player
+        const update = {
+          visible: plotData.map((trace) =>
+            trace.name === selectedPlayerName ? true : "legendonly"
+          ),
+        };
+
+        Plotly.restyle(
+          "plot",
+          update,
+          plotData.map((trace, index) => index)
+        );
+      }
+
+      // Function to show the selected section without scrolling
+      function showSection(sectionId) {
+        document.getElementById("graph-section").style.display =
+          sectionId === "graph-section" ? "block" : "none";
+        document.getElementById("table-section").style.display =
+          sectionId === "table-section" ? "block" : "none";
+      }
+
+      // Fetch player stats and populate the dropdown and table
+      fetch("player_stats.json")
+        .then((response) => response.json())
+        .then((data) => {
+          playerData = data;
+          const playerSelect = document.getElementById("player-select");
+          const tableBody = document
+            .getElementById("player-table")
+            .getElementsByTagName("tbody")[0];
+          // Sort players alphabetically by name
+          playerData.sort((a, b) => a.leikmadur.localeCompare(b.leikmadur));
+          playerData.forEach((player) => {
+            const option = document.createElement("option");
+            option.value = player.leikmadur;
+            option.textContent = player.leikmadur;
+            playerSelect.appendChild(option);
+
+            const row = tableBody.insertRow();
+            row.insertCell(0).textContent = player.leikmadur;
+            row.insertCell(1).textContent = player.games;
+            row.insertCell(2).textContent = player.sigrar;
+            row.insertCell(3).textContent = player.jafntefli;
+            row.insertCell(4).textContent = player.top;
+            row.insertCell(5).textContent =
+              player.win_percentage.toFixed(1) + "%";
+            row.insertCell(6).textContent = Math.round(player.elo_rating);
+          });
+          if (playerData.length > 0) {
+            playerSelect.value = playerData[0].leikmadur;
+            updatePlayerStats();
+          }
+
+          // Initialize DataTable for sorting and filtering
+          $(document).ready(function () {
+            // Add custom sorting type for percentage values
+            $.fn.dataTable.ext.type.order["percent-pre"] = function (data) {
+              return parseFloat(data.replace("%", ""));
+            };
+
+            $("#player-table").DataTable({
+              paging: true,
+              searching: true,
+              info: true,
+              order: [[1, "desc"]],
+              pageLength: -1, // Show all rows by default
+              columnDefs: [
+                {
+                  type: "num",
+                  targets: [1, 2, 3, 4, 6],
+                  className: "dt-center",
+                },
+                { type: "percent", targets: 5, className: "dt-center" }, // Custom sorting for win_percentage
+              ],
+            });
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching player stats:", error);
+        });
+
+      // Fetch and display the Plotly graph
+      fetch("plotly_graph.json")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(
+              "Network response was not ok " + response.statusText
+            );
+          }
+          return response.json();
+        })
+        .then((data) => {
+          plotData = data.data;
+          layout = data.layout;
+
+          // Adjust the size of the plot
+          layout.height = 600; // Adjust the height as needed
+          layout.width = 1500; // Adjust the width as needed
+
+          layout.updatemenus = [
+            {
+              buttons: [
+                {
+                  args: [{ visible: plotData.map(() => true) }],
+                  label: "Select All",
+                  method: "restyle",
+                },
+                {
+                  args: [{ visible: plotData.map(() => "legendonly") }],
+                  label: "Deselect All",
+                  method: "restyle",
+                },
+              ],
+              direction: "left",
+              pad: { r: 10, t: 10 },
+              showactive: true,
+              type: "buttons",
+              x: 1,
+              xanchor: "left",
+              y: 1.2,
+              yanchor: "top",
+            },
+          ];
+
+          var graphDiv = document.getElementById("plot");
+          Plotly.newPlot(graphDiv, plotData, layout);
+        })
+        .catch((error) => {
+          console.error(
+            "There has been a problem with your fetch operation:",
+            error
+          );
+        });
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/service-worker.js").then(
+            function (registration) {
+              console.log(
+                "ServiceWorker registration successful with scope: ",
+                registration.scope
+              );
+            },
+            function (error) {
+              console.log("ServiceWorker registration failed: ", error);
+            }
+          );
+        });
+      }
+    </script>
+  </body>
+</html>
