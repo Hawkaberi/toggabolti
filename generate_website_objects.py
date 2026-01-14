@@ -16,29 +16,29 @@ initial_elo_rating = 1200
 def E_elo(r, ri):
     return 1 / (1 + 10 ** ((ri - r) / 400))
 
-def get_k_factor(player):
-    games = player['games']
-
-    slope = (10 - 80) / (100 - 0)  # = -70/90 = -7/9 ≈ -0.778
-    return 80 + slope * (games - 0)
+def get_k_factor():
+    return 30
 
 def calculate_rating_change(player, results):
     K = get_k_factor(player)
     total_delta = 0
     num_opponents = len(results)
-    multiplier = min(1 + 0.1 * (player['win_streak'] - 1), 2)
 
     for match in results:
         opponent_rating = match['opponent']['elo_rating']
-        score = match['score']  # 1 for win, 0 for loss
+        score = match['score']
         expected_score = E_elo(player['elo_rating'], opponent_rating)
         base_delta = K * (score - expected_score)
-        
-        adjusted_delta = base_delta * multiplier
-        total_delta += adjusted_delta
-    
-    # Normalize so total rating change doesn't inflate with number of opponents
-    normalized_change = (total_delta*3) / num_opponents if num_opponents > 0 else 0
+
+        if score == 1:
+            streak = player['win_streak']
+        else:
+            streak = player['loss_streak']
+
+        streak_multiplier = min(1 + 0.1 * max(streak - 1, 0), 2)
+        total_delta += base_delta * streak_multiplier
+
+    normalized_change = total_delta / num_opponents if num_opponents > 0 else 0
 
     avg_opponent_rating = sum(r['opponent']['elo_rating'] for r in results) / num_opponents if num_opponents > 0 else player['elo_rating']
     avg_score = sum(r['score'] for r in results) / num_opponents if num_opponents > 0 else 0
@@ -68,6 +68,7 @@ def update_all_players(results, inactive_players, date=None):
     # Second pass: apply rating changes
     for player, change_data in rating_changes:        
         player['elo_rating'] += change_data['elo_change']
+        player['display_elo'] = 1200 + (player['elo_rating'] - 1200) * 2.5
         player['games'] += 1
         updated_players.append(player)
 
@@ -191,12 +192,19 @@ dagadict[dt(2024,12,24)]['lid2'] = ['Birgir Magnús', 'Daði Snær', 'Þórarinn
 dagadict[dt(2025,6,12)]['lid1'] = ['Davíð', 'Máni Þór', 'Gunnar', 'Sindri', 'Þórður', 'Símon']
 dagadict[dt(2025,6,12)]['lid2'] = ['Sigurgeir', 'Alexander', 'Birgir Magnús', 'Haukur', 'Jakob Jóhann', 'Daníel Snorri']
 
+dagadict[dt(2025,8,21)]['lid1'] = ['Gunnar', 'Gunnar (vinnufélagi Dabba)', 'Alexander', 'Siggi Baddi', 'Ásgeir', 'Sindri', 'Þórður']
+dagadict[dt(2025,8,21)]['lid2'] = ['Franz', 'Þórarinn', 'Jón Rúnar', 'Haukur', 'Davíð', 'Birgir Magnús', 'Eggert Georg']
+
+dagadict[dt(2025,8,28)]['lid1'] = ['Tómas Daði', 'Birgir Magnús', 'Jakob Jóhann', 'Sindri', 'Þórður', 'Davíð', 'Siggi Baddi']
+dagadict[dt(2025,8,28)]['lid2'] = ['Jón Rúnar', 'Daníel Snorri', 'Gunnar (vinnufélagi Dabba)', 'Alexander', 'Haukur', 'Eggert Georg', 'Gunnar']
+
 print("Calculating ratings...")
 leikmannalist = []
 for leikmadur in df.columns[1:]:
     player = {
         'leikmadur': leikmadur,
         'elo_rating': initial_elo_rating,
+        'display_elo': initial_elo_rating,
         'games': 0,
         'sigrar': 0,
         'jafntefli': 0,
@@ -354,6 +362,7 @@ for _, row in first_instances.iterrows():
         'leikmadur': row['leikmadur'],
         'date': row['date'] - timedelta(days=1),
         'elo_rating': initial_elo_rating,
+        'display_elo': initial_elo_rating,
         'games': 0,
         'sigrar': 0,
         'jafntefli': 0,
@@ -397,8 +406,8 @@ filtered_df['leikmadur'] = pd.Categorical(
 filtered_df = filtered_df.sort_values(by=['leikmadur', 'date'])
 
 # Plot the Glicko ratings over time for the specified players using Plotly
-fig = px.line(filtered_df, x='date', y='elo_rating', color='leikmadur', 
-              labels={'date': 'Dagsetning', 'elo_rating': 'Togga Stig'}, 
+fig = px.line(filtered_df, x='date', y='display_elo', color='leikmadur', 
+              labels={'date': 'Dagsetning', 'display_elo': 'Togga Stig'}, 
               title='Þróun Togga Stiga')
 
 # Customize hover data to include other relevant columns and remove the default hover label
