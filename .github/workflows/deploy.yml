@@ -8,16 +8,21 @@ on:
     branches:
       - main
   schedule:
-    - cron: "0 0 * * *" # Midnight UTC
+    - cron: "0 0 * * 0" # Weekly on Sunday at 00:00 UTC
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
+      # 1 Checkout repository (full history for gh-pages)
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
+      # 2 Install Miniconda
       - name: Install Miniconda
         shell: bash
         run: |
@@ -27,13 +32,20 @@ jobs:
           conda config --set always_yes yes --set changeps1 no
           conda update -q conda
 
+      # 3 Create or update conda environment
       - name: Create conda environment
         shell: bash
         run: |
           source "$HOME/miniconda/etc/profile.d/conda.sh"
-          conda env create -f toggaenv.yml
+          if conda env list | grep -q 'toggaenv'; then
+            echo "Environment exists, updating..."
+            conda env update -f toggaenv.yml
+          else
+            conda env create -f toggaenv.yml
+          fi
 
-      - name: Run generate_website_objects.py
+      # 5 Activate conda and generate website objects
+      - name: Generate website objects
         shell: bash
         env:
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
@@ -45,6 +57,7 @@ jobs:
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/google-credentials.json
           python generate_website_objects.py
 
+      # 6 Prepare public directory
       - name: Prepare public directory
         run: |
           rm -rf public
@@ -54,9 +67,20 @@ jobs:
           cp styles.css public/
           ls -la public
 
+      # 7 Determine deployment path
+      - name: Determine deployment path
+        id: deploy_path
+        run: |
+          [[ "${{ github.event_name }}" == "pull_request" ]] && echo "dir=pr-${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT" || echo "dir=." >> "$GITHUB_OUTPUT"
+
+      # 8 Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         if: github.event_name != 'pull_request'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
+          destination_dir: ${{ steps.deploy_path.outputs.dir }}
+          keep_files: false
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
