@@ -80,10 +80,7 @@ jobs:
       - name: Determine deployment path
         id: deploy_path
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "dir=pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
-          else
-            echo "dir=." >> $GITHUB_OUTPUT
+          [[ "${{ github.event_name }}" == "pull_request" ]] && echo "dir=pr-${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT" || echo "dir=." >> "$GITHUB_OUTPUT"
 
       # 8 Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
