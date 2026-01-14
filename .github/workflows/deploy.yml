@@ -22,16 +22,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 2 Cache conda environment for speed
-      - name: Cache conda
-        uses: actions/cache@v3
-        with:
-          path: $HOME/miniconda/envs/toggaenv
-          key: conda-env-${{ hashFiles('toggaenv.yml') }}
-          restore-keys: |
-            conda-env-
-
-      # 3 Install Miniconda
+      # 2 Install Miniconda
       - name: Install Miniconda
         shell: bash
         run: |
@@ -41,7 +32,7 @@ jobs:
           conda config --set always_yes yes --set changeps1 no
           conda update -q conda
 
-      # 4 Create or update conda environment
+      # 3 Create or update conda environment
       - name: Create conda environment
         shell: bash
         run: |
@@ -52,6 +43,15 @@ jobs:
           else
             conda env create -f toggaenv.yml
           fi
+
+      # 4 Cache conda environment for speed
+      - name: Cache conda
+        uses: actions/cache@v3
+        with:
+          path: $HOME/miniconda/envs/toggaenv
+          key: conda-env-${{ hashFiles('toggaenv.yml') }}
+          restore-keys: |
+            conda-env-
 
       # 5 Activate conda and generate website objects
       - name: Generate website objects
