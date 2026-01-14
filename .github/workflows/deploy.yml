@@ -76,12 +76,11 @@ jobs:
 
       # 8 Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        if: github.event_name != 'pull_request'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          destination_dir: ${{ steps.deploy_path.outputs.dir }}
+          branch: gh-pages # explicitly push to gh-pages
           keep_files: false
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
