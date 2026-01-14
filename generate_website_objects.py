@@ -20,7 +20,7 @@ def get_k_factor():
     return 30
 
 def calculate_rating_change(player, results):
-    K = get_k_factor(player)
+    K = get_k_factor()
     total_delta = 0
     num_opponents = len(results)
 
