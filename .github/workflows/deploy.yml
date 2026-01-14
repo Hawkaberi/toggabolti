@@ -44,15 +44,6 @@ jobs:
             conda env create -f toggaenv.yml
           fi
 
-      # 4 Cache conda environment for speed
-      - name: Cache conda packages
-        uses: actions/cache@v3
-        with:
-          path: $HOME/miniconda/pkgs
-          key: conda-pkgs-${{ hashFiles('toggaenv.yml') }}
-          restore-keys: |
-            conda-pkgs-
-
       # 5 Activate conda and generate website objects
       - name: Generate website objects
         shell: bash
