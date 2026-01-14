@@ -45,13 +45,13 @@ jobs:
           fi
 
       # 4 Cache conda environment for speed
-      - name: Cache conda
+      - name: Cache conda packages
         uses: actions/cache@v3
         with:
-          path: $HOME/miniconda/envs/toggaenv
-          key: conda-env-${{ hashFiles('toggaenv.yml') }}
+          path: $HOME/miniconda/pkgs
+          key: conda-pkgs-${{ hashFiles('toggaenv.yml') }}
           restore-keys: |
-            conda-env-
+            conda-pkgs-
 
       # 5 Activate conda and generate website objects
       - name: Generate website objects
