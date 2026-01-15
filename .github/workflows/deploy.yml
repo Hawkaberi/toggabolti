@@ -58,6 +58,7 @@ jobs:
 
   deploy:
     needs: build-data
+    if: needs.build-data.result == 'success'
     runs-on: ubuntu-latest
 
     steps:

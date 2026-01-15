@@ -8,6 +8,8 @@ import json
 import os
 from dotenv import load_dotenv
 import math
+import time
+from gspread.exceptions import APIError
 
 # Elo constants
 initial_elo_rating = 1200
@@ -102,21 +104,35 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds = ServiceAccountCredentials.from_json_keyfile_name(credentials_path, scope)
 client = gspread.authorize(creds)
 
-spreadsheet_titles = [sheet.title for sheet in client.openall()]
-print(f"Accessible spreadsheet titles: {spreadsheet_titles}")
+def with_retry(fn, retries=5, delay=5):
+    """
+    Retry Google API calls with exponential backoff.
+    """
+    for attempt in range(1, retries + 1):
+        try:
+            return fn()
+        except APIError as e:
+            if attempt == retries:
+                print("Max retries reached, raising error")
+                raise
+            print(
+                f"Google API error on attempt {attempt}/{retries}: {e}. "
+                f"Retrying in {delay}s..."
+            )
+            time.sleep(delay)
+            delay *= 2
 
-# Open the Google Sheet by title
-sheet_title = "Toggaboltinn"
-spreadsheet = client.open(sheet_title)
+SHEET_TITLE = "Toggaboltinn"
 
-print("Loading data...")
-# Select the worksheet by title
-worksheet = spreadsheet.get_worksheet(0)  # Use 0 if it's the first worksheet
-worksheet2 = spreadsheet.get_worksheet(1)
+spreadsheet = with_retry(lambda: client.open(SHEET_TITLE))
+print(f"Opened spreadsheet: {SHEET_TITLE}")
+
+worksheet = with_retry(lambda: spreadsheet.get_worksheet(0))
+worksheet2 = with_retry(lambda: spreadsheet.get_worksheet(1))
 
 # Get all values from the worksheet
-data = worksheet.get_all_values()
-data2 = worksheet2.get_all_values()
+data = with_retry(worksheet.get_all_values)
+data2 = with_retry(worksheet2.get_all_values)
 
 # Create a Pandas DataFrame
 df = pd.DataFrame(data[1:], columns=data[0])
