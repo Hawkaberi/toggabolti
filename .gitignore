@@ -1,2 +1,4 @@
 .env
 miniconda.sh
+creds.json
+/tmp/google-credentials.json
