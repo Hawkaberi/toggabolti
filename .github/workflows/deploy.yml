@@ -41,17 +41,16 @@ jobs:
         run: |
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate toggaenv
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > creds.json
+          # write credentials to temporary file (never commit)
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/google-credentials.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/google-credentials.json
           python generate_website_objects.py
 
       - name: Commit generated files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git reset creds.json || true
-          git add .
-
+          git add .  # add only generated data files
           if git diff --cached --quiet; then
             echo "No changes"
           else
