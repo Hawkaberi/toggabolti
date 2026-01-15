@@ -1,4 +1,4 @@
-name: Build and Deploy Website
+name: Run and Deploy
 
 on:
   push:
@@ -12,75 +12,70 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build-data:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
 
     steps:
-      # 1 Checkout repository (full history for gh-pages)
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      # 2 Install Miniconda
       - name: Install Miniconda
-        shell: bash
         run: |
           wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
           bash miniconda.sh -b -p $HOME/miniconda
           source "$HOME/miniconda/etc/profile.d/conda.sh"
-          conda config --set always_yes yes --set changeps1 no
+          conda config --set always_yes yes
           conda update -q conda
 
-      # 3 Create or update conda environment
-      - name: Create conda environment
-        shell: bash
+      - name: Create env
         run: |
           source "$HOME/miniconda/etc/profile.d/conda.sh"
-          if conda env list | grep -q 'toggaenv'; then
-            echo "Environment exists, updating..."
-            conda env update -f toggaenv.yml
-          else
-            conda env create -f toggaenv.yml
-          fi
+          conda env create -f toggaenv.yml
 
-      # 5 Activate conda and generate website objects
-      - name: Generate website objects
-        shell: bash
+      - name: Run generator
         env:
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
-          GITHUB_ACTIONS: true
         run: |
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate toggaenv
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /tmp/google-credentials.json
-          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/google-credentials.json
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > creds.json
+          export GOOGLE_APPLICATION_CREDENTIALS=$PWD/creds.json
           python generate_website_objects.py
 
-      # 6 Prepare public directory
-      - name: Prepare public directory
+      - name: Commit generated files
         run: |
-          rm -rf public
-          mkdir public
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update website data"
+            git push
+          fi
+
+  deploy:
+    needs: build-data
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Prepare public dir
+        run: |
+          mkdir -p public
+          cp index.html styles.css public/
           cp *.json public/
-          cp index.html public/
-          cp styles.css public/
+          cp *.png *.svg public/ 2>/dev/null || true
           ls -la public
 
-      # 7 Determine deployment path
-      - name: Determine deployment path
-        id: deploy_path
-        run: |
-          [[ "${{ github.event_name }}" == "pull_request" ]] && echo "dir=pr-${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT" || echo "dir=." >> "$GITHUB_OUTPUT"
-
-      # 8 Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          publish_branch: gh-pages # explicitly push to gh-pages
-          keep_files: false
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
